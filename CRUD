@@ -1,0 +1,286 @@
+const express = require("express")
+const bodyParser = require("body-parser")
+const cors = require("cors")
+const mysql = require("mysql")
+const md5 = require("md5")
+const moment = require("moment")
+
+const app = express()
+app.use(cors())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended:true}))
+
+const db = mysql.createConnection({
+    host:"localhost",
+    user:"root",
+    password:"",
+    database:"p.mobil"
+})
+
+db.connect(error =>{
+    if(error){
+        console.log(error.message)
+    }else{
+        console.log("MySQL Connected")
+    }
+})
+
+app.listen(8000,() =>{
+    console.log("Run on port 8000")
+})
+
+let response = null
+function errorFunc(er,rst) {
+    if(er){
+        response = {
+            message: error.message
+        }
+    }else{
+        response = {
+            count: rst.length,
+            data:rst
+        }
+    }
+}
+
+function errnoelse(error){
+    if(error){
+        response = {
+            message: error.message
+        }
+    }
+}
+
+//CRUD
+
+app.get("/mobil",(req,res)=>{
+    let sql = "select * from mobil"
+
+    //run sql
+    db.query(sql,(error,result)=>{
+        errorFunc(error,result)
+        res.json(response)
+    })
+})
+
+app.get("/mobil/:id",(req,res)=>{
+    let data = {
+        id_mobil:req.params.id
+    }
+
+    let sql = "select*from mobil where ?"
+
+    //run sql
+    db.query(sql,data,(error,result)=>{
+        errorFunc(error,result)
+        res.json(response)
+    })
+})
+
+app.post("/mobil",(req,res)=>{
+    let data = {
+        id_mobil:req.body.id_mobil,
+        no_mobil:req.body.no_mobil,
+        merk:req.body.merk,
+        jenis:req.body.jenis,
+        warna:req.body.warna,
+        tahun_buat:req.body.tahun_buat,
+        biaya_sewa:req.body.biaya_sewa,
+        image:req.body.image
+    }
+    let sql = "insert into mobil set ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows + " data inserted"
+        }
+        res.json(response)
+    })
+})
+
+app.put("/mobil",(req,res)=>{
+    let data = [
+        {
+            nom_mobil:req.body.no_mobil,
+            merk:req.body.merk,
+            jenis:req.body.jenis,
+            warna:req.body.warna,
+            tahun_buat:req.body.tahun_buat,
+            biaya_sewa:req.body.biaya_sewa,
+            image:req.body.image
+        },
+        {
+            id_mobil:req.body.id_mobil
+        }
+    ]
+    let sql = "update mobil set? where ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message:result.affectedRows+" data update"
+        }
+
+        res.json(response)
+    })
+})
+
+app.delete("/mobil/:id",(req,res)=>{
+    let data = {
+        id_mobil:req.params.id
+    }
+    let sql = "delete from mobil where ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows+" data deleted"
+        }
+        res.json(response)
+    })
+})
+
+app.get("/pelanggan",(req,res)=>{
+    let sql = "select * from pelanggan"
+    db.query(sql,(error,result)=>{
+        errorFunc(error,result)
+        res.json(response)
+    })
+})
+
+app.get("/pelanggan/:id",(req,res)=>{
+    let data = {
+        id_pelanggan:req.params.id
+    }
+    let sql = "select * from pelanggan where ?"
+    db.query(sql,data,(error,result)=>{
+        errorFunc(error,result)
+        res.json(response)
+    })
+})
+
+app.post("/pelanggan",(req,res)=>{
+    let data = {
+        id_pelanggan:req.body.id_pelanggan,
+        namapel:req.body.namapeln,
+        alamatpel:req.body.alamatpel,
+        kontak:req.body.kontak
+    }
+    let sql = "insert into pelanggan set ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows+ " data inserted"
+        }
+        res.json(response)
+    })
+})
+
+app.put("/pelanggan",(req,res)=>{
+    let data = [
+        {
+            namapel:req.body.namapel,
+            alamatpel:req.body.alamatpel,
+            kontak:req.body.kontak
+        },
+        {
+            id_pelanggan:req.body.id_pelanggan
+        }
+    ]
+    let sql = "update pelanggan set ? where ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows+ " data update"
+        }
+
+        res.json(response)
+    })
+})
+
+app.delete("/pelanggan/:id",(req,res)=>{
+    let data = {
+        id_pelanggan:req.params.id
+    }
+    let sql = "delete from pelanggan where ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows+ " data deleted"
+        }
+    })
+})
+
+app.get("/karyawan",(req,res)=>{
+    let sql = "select * from karyawan"
+
+    db.query(sql,(error,result)=>{
+        errorFunc(error,result)
+        res.json(response)
+    })
+})  
+
+app.get("/karyawan/:id",(req,res)=>{
+    let data = {
+        id_karyawan: req.params.id
+    }
+    let sql = "select * from karyawan where ?"
+    db.query(sql,data,(error,result)=>{
+        errorFunc(error,result)
+        res.json(response)
+    })
+})
+
+app.post("/karyawan",(req,res)=>{
+    let data = {
+        id_karyawan: req.body.id_karyawan,
+        namakar: req.body.namakar,
+        alamatkar: req.body.alamatkar,
+        kontak: req.body.kontak,
+        username: req.body.username,
+        password: md5(req.body.password)
+    }
+    let sql = "insert into karyawan set ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows + " data inserted"
+        }
+        res.json(response)
+    })
+})
+
+app.delete("/karyawan/:id",(req,res)=>{
+    let data = {
+        id_karyawan: req.params.id
+    }
+    let sql = "delete from karyawan where ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows + " data deleted"
+        }
+        res.json(response)
+    })
+})
+
+app.put("/karyawan",(req,res)=>{
+    let data = [
+        {
+            namakar: req.body.namakar,
+            alamatkar: req.body.alamatkar,
+            kontak: req.body.kontak,
+            username: req.body.username,
+            password: md5(req.body.password)
+        },
+        {
+            id_karyawan: req.body.id_karyawan
+        }    
+    ]
+    let sql = "update karyawan set ? where ?"
+    db.query(sql,data,(error,result)=>{
+        errnoelse(error)
+        response = {
+            message: result.affectedRows + " data update"
+        }
+        res.json(response)
+    })
+})
